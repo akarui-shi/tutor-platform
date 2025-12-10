@@ -15,7 +15,7 @@ public class PaymentEventListener {
     @RabbitListener(queues = Constants.QueueNames.PAYMENT_QUEUE)
     public void handlePayment(PaymentEvent event) {
         // Заглушка обработки платежа
-        log.info("Processing payment event: {}", event);
+        log.info("Обрабатываю событие платежа: {}", event);
         // Здесь можно добавить имитацию запроса к платежному провайдеру
     }
 }

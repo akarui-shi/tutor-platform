@@ -15,7 +15,7 @@ public class IntegrationEventListener {
     @RabbitListener(queues = Constants.QueueNames.INTEGRATION_QUEUE)
     public void handleIntegration(IntegrationEvent event) {
         // Заглушка интеграции с внешними системами
-        log.info("Process integration event: {}", event);
+        log.info("Обрабатываю событие интеграции: {}", event);
     }
 }
 

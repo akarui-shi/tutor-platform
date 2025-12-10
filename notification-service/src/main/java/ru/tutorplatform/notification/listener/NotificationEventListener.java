@@ -15,7 +15,7 @@ public class NotificationEventListener {
     @RabbitListener(queues = Constants.QueueNames.NOTIFICATION_QUEUE)
     public void handleNotification(NotificationEvent event) {
         // Заглушка отправки уведомлений
-        log.info("Send notification: {}", event);
+        log.info("Отправляю уведомление: {}", event);
     }
 }
 

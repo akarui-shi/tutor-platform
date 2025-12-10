@@ -13,7 +13,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class NotificationEvent implements Serializable {
     private String eventId;
-    private String type; // EMAIL, SMS, PUSH
+    private String type; // EMAIL, SMS, PUSH — тип уведомления
     private String recipient;
     private String templateId;
     private Map<String, Object> parameters;

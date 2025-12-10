@@ -25,7 +25,7 @@ public class User {
     private String passwordHash;
 
     @Column(nullable = false)
-    private String role; // STUDENT, TUTOR, ADMIN
+    private String role; // STUDENT, TUTOR, ADMIN — роль пользователя
 
     private String email;
     private String fullName;

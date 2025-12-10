@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class IntegrationEvent implements Serializable {
     private String operationId;
-    private String systemName; // "1C", "CRM", "ERP"
-    private String operationType; // "CREATE_INVOICE", "UPDATE_ORDER"
+    private String systemName; // "1C", "CRM", "ERP" — внешняя система
+    private String operationType; // "CREATE_INVOICE", "UPDATE_ORDER" — тип операции
     private Object payload;
     private LocalDateTime timestamp;
 }

@@ -90,7 +90,7 @@ public class LessonService {
                 .filter(lesson -> status == null || Objects.equals(lesson.getStatus(), status))
                 .filter(lesson -> date == null || (lesson.getScheduledTime() != null &&
                         lesson.getScheduledTime().toLocalDate().isEqual(date)))
-                // простая проверка доступа: если не ADMIN, то возвращаем только свои уроки
+                // Простая проверка доступа: если не ADMIN, то возвращаем только свои уроки
                 .filter(lesson -> "ADMIN".equalsIgnoreCase(role) ||
                         Objects.equals(lesson.getStudentId(), userId) ||
                         Objects.equals(lesson.getTutorId(), userId))
@@ -150,7 +150,7 @@ public class LessonService {
         lesson = lessonRepository.save(lesson);
 
         sendNotification("LESSON_CANCELLED", lesson);
-        log.info("Lesson {} cancelled. Reason: {}", lessonId, reason);
+        log.info("Урок {} отменён. Причина: {}", lessonId, reason);
         return lessonMapper.toDTO(lesson);
     }
 
@@ -194,7 +194,7 @@ public class LessonService {
                 event
         );
 
-        log.info("Payment event sent for lesson {}", lesson.getId());
+        log.info("Событие оплаты отправлено для урока {}", lesson.getId());
     }
 
     private void sendNotification(String type, Lesson lesson) {

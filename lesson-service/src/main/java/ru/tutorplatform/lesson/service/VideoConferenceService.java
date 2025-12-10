@@ -41,7 +41,7 @@ public class VideoConferenceService {
             return createWherebyMeeting(lessonId, startTime, duration);
 
         } catch (Exception e) {
-            log.error("Failed to create video conference", e);
+            log.error("Не удалось создать видеоконференцию", e);
             return generateGenericMeetingUrl(lessonId);
         }
     }
@@ -55,7 +55,7 @@ public class VideoConferenceService {
 
         Map<String, Object> requestBody = Map.of(
                 "topic", "Урок #" + lessonId,
-                "type", 2, // Scheduled meeting
+                "type", 2, // Запланированная встреча
                 "start_time", startTime.toString(),
                 "duration", duration,
                 "timezone", "Europe/Moscow",
