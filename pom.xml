@@ -32,13 +32,6 @@
         <module>payment-service</module>
         <module>notification-service</module>
         <module>integration-service</module>
-        <!--        <module>service-registry</module>-->
-<!--        <module>api-gateway</module>-->
-<!--        <module>user-service</module>-->
-<!--        <module>lesson-service</module>-->
-<!--        <module>payment-service</module>-->
-<!--        <module>notification-service</module>-->
-<!--        <module>integration-service</module>-->
     </modules>
 
     <dependencyManagement>

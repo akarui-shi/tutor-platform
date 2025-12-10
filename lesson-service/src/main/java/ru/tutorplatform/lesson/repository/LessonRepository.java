@@ -6,3 +6,4 @@ import ru.tutorplatform.lesson.model.Lesson;
 public interface LessonRepository extends JpaRepository<Lesson, Long> {
 }
 
+

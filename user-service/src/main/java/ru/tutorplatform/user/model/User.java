@@ -18,16 +18,19 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "username")
     private String username;
 
-    @Column(nullable = false)
+    @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
     @Column(nullable = false)
     private String role; // STUDENT, TUTOR, ADMIN — роль пользователя
 
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(name = "full_name")
     private String fullName;
 }
 
