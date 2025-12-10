@@ -1,4 +1,3 @@
-// GatewayConfig.java
 package ru.tutorplatform.gateway.config;
 
 import org.springframework.cloud.gateway.route.RouteLocator;
