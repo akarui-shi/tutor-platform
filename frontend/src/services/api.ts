@@ -185,7 +185,7 @@ class ApiService {
             this.api.post('/api/auth/login', { email, password }),
 
         register: (data: any) =>
-            this.api.post('/api/auth/register', data),
+            this.api.post('/api/users', data),
 
         logout: () =>
             this.api.post('/api/auth/logout'),

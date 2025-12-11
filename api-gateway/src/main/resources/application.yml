@@ -10,8 +10,9 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
-      default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      # УДАЛИТЕ или закомментируйте эту строку:
+      # default-filters:
+      #   - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
       httpclient:
         connect-timeout: 10000
         response-timeout: 10s
