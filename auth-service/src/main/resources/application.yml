@@ -11,6 +11,12 @@ spring:
   web:
     resources:
       add-mappings: false
+  security:
+    # Отключаем default security
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8086
   # Явно отключаем DataSource для auth-service
   autoconfigure:
     exclude:
