@@ -1,0 +1,76 @@
+export interface Lesson {
+    id: number;
+    studentId: number;
+    tutorId: number;
+    subject: string;
+    description?: string;
+    startTime: string;
+    endTime: string;
+    duration: number; // in minutes
+    status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+    price: number;
+    paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
+    meetingUrl?: string;
+    materials?: string[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateLessonRequest {
+    studentId: number;
+    tutorId: number;
+    subject: string;
+    description?: string;
+    startTime: string;
+    endTime: string;
+    price: number;
+}
+
+export interface UpdateLessonRequest {
+    subject?: string;
+    description?: string;
+    startTime?: string;
+    endTime?: string;
+    price?: number;
+}
+
+export interface User {
+    id: number;
+    username: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: 'STUDENT' | 'TUTOR' | 'ADMIN';
+    avatar?: string;
+    bio?: string;
+    subjects?: string[];
+    rating?: number;
+    hourlyRate?: number;
+}
+
+export interface Payment {
+    id: number;
+    lessonId: number;
+    amount: number;
+    currency: string;
+    status: 'PENDING' | 'SUCCESS' | 'FAILED';
+    paymentMethod: string;
+    transactionId?: string;
+    createdAt: string;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    data: T;
+    message?: string;
+}
+
+export interface Notification {
+    id: number;
+    userId: number;
+    type: 'LESSON_CREATED' | 'LESSON_UPDATED' | 'LESSON_CANCELLED' | 'PAYMENT_SUCCESS' | 'REMINDER';
+    title: string;
+    message: string;
+    read: boolean;
+    createdAt: string;
+}
