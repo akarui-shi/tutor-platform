@@ -27,6 +27,7 @@
         <module>common-lib</module>
         <module>service-registry</module>
         <module>api-gateway</module>
+        <module>auth-service</module>
         <module>lesson-service</module>
         <module>user-service</module>
         <module>payment-service</module>

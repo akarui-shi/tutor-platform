@@ -1,4 +1,4 @@
-package ru.tutorplatform.user.dto;
+package ru.tutorplatform.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,10 +11,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UserDto {
     private Long id;
-    private String username;
     private String email;
+    private String username;
     private String passwordHash;
+    private String role;
     private String firstName;
     private String lastName;
-    private String role;
 }
