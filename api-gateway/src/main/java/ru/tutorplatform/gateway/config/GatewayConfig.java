@@ -13,22 +13,18 @@ public class GatewayConfig {
         return builder.routes()
                 .route("user-service", r -> r
                         .path("/api/users/**")
-                        .filters(f -> f.stripPrefix(1))
                         .uri("lb://USER-SERVICE"))
 
                 .route("lesson-service", r -> r
                         .path("/api/lessons/**")
-                        .filters(f -> f.stripPrefix(1))
                         .uri("lb://LESSON-SERVICE"))
 
                 .route("payment-service", r -> r
                         .path("/api/payments/**")
-                        .filters(f -> f.stripPrefix(1))
                         .uri("lb://PAYMENT-SERVICE"))
 
                 .route("calendar-service", r -> r
                         .path("/api/calendar/**")
-                        .filters(f -> f.stripPrefix(1))
                         .uri("lb://CALENDAR-SERVICE"))
 
                 .route("swagger", r -> r

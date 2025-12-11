@@ -23,7 +23,8 @@ public class UserService {
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .email(request.getEmail())
-                .fullName(request.getFullName())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
                 .build();
 
         user = userRepository.save(user);
@@ -45,10 +46,13 @@ public class UserService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
-                .fullName(user.getFullName())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
                 .role(user.getRole())
                 .build();
     }
 }
+
+
 
 

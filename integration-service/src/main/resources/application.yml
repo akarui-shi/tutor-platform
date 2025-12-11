@@ -1,31 +1,15 @@
 server:
-  port: 8083
+  port: 8085
 
 spring:
   application:
-    name: payment-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/paymentdb
-    username: tutor
-    password: tutor123
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      connection-timeout: 30000
-      maximum-pool-size: 10
-      minimum-idle: 5
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+    name: integration-service
   rabbitmq:
     host: localhost
     port: 5672
     username: tutor
     password: tutor123
+    virtual-host: /
     connection-timeout: 10000
     template:
       retry:
@@ -65,9 +49,6 @@ management:
 
 logging:
   level:
-    ru.tutorplatform.payment: DEBUG
+    ru.tutorplatform.integration: DEBUG
     org.springframework.amqp: INFO
-
-
-
 

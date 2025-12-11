@@ -53,6 +53,9 @@ management:
       show-details: always
       probes:
         enabled: true
+  health:
+    mail:
+      enabled: false
   metrics:
     export:
       prometheus:
