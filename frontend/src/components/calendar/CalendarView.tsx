@@ -52,6 +52,21 @@ const CalendarView: React.FC = () => {
         navigate(`/lessons/${event.id}`);
     }, [navigate]);
 
+    const viewToUnit = (view: View): moment.unitOfTime.DurationConstructor => {
+        switch (view) {
+            case 'month':
+                return 'month';
+            case 'week':
+            case 'work_week':
+                return 'week';
+            case 'day':
+            case 'agenda':
+                return 'day';
+            default:
+                return 'day';
+        }
+    };
+
     const handleCreateLesson = () => {
         if (selectedSlot) {
             navigate('/lessons/create', {
@@ -107,10 +122,10 @@ const CalendarView: React.FC = () => {
                     >
                         Сегодня
                     </Button>
-                    <IconButton onClick={() => setCurrentDate(moment(currentDate).subtract(1, currentView).toDate())}>
+                    <IconButton onClick={() => setCurrentDate(moment(currentDate).subtract(1, viewToUnit(currentView)).toDate())}>
                         <ChevronLeft />
                     </IconButton>
-                    <IconButton onClick={() => setCurrentDate(moment(currentDate).add(1, currentView).toDate())}>
+                    <IconButton onClick={() => setCurrentDate(moment(currentDate).add(1, viewToUnit(currentView)).toDate())}>
                         <ChevronRight />
                     </IconButton>
                     <Button

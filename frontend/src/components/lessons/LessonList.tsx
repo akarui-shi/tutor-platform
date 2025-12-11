@@ -32,10 +32,9 @@ const LessonList: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { lessons, loading } = useAppSelector((state) => state.lessons);
-    const { user } = useAppSelector((state) => state.auth);
 
     useEffect(() => {
-        dispatch(fetchLessons());
+        dispatch(fetchLessons(undefined));
     }, [dispatch]);
 
     const getStatusColor = (status: string) => {

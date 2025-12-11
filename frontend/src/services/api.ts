@@ -1,8 +1,11 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { store } from '../store';
-import { logout, refreshToken } from '../store/slices/authSlice';
+import { logout } from '../store/slices/authSlice';
+import { CreateLessonRequest, UpdateLessonRequest, User } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
+type CustomRequestConfig = AxiosRequestConfig & { _retry?: boolean };
 
 class ApiService {
     private api: AxiosInstance;
@@ -28,6 +31,7 @@ class ApiService {
         // Request interceptor
         this.api.interceptors.request.use(
             (config) => {
+                config.headers = (config.headers || {}) as any;
                 const token = localStorage.getItem('accessToken');
                 if (token) {
                     config.headers.Authorization = `Bearer ${token}`;
@@ -59,7 +63,7 @@ class ApiService {
         this.api.interceptors.response.use(
             (response: AxiosResponse) => response,
             async (error) => {
-                const originalRequest = error.config;
+                const originalRequest = error.config as CustomRequestConfig;
 
                 if (error.response?.status === 401 && !originalRequest._retry) {
                     if (this.isRefreshing) {
@@ -80,10 +84,15 @@ class ApiService {
                         const { accessToken } = response.data;
                         localStorage.setItem('accessToken', accessToken);
 
+                        if (!originalRequest.headers) {
+                            originalRequest.headers = {};
+                        }
+
                         this.api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
                         originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
 
                         this.failedRequests.forEach((request) => {
+                            request.config.headers = request.config.headers || {};
                             request.config.headers['Authorization'] = `Bearer ${accessToken}`;
                             request.resolve(this.api(request.config));
                         });

@@ -52,16 +52,15 @@ const LessonForm: React.FC<LessonFormProps> = ({
     const { loading, error } = useAppSelector((state) => state.lessons);
 
     const [tutors, setTutors] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<string[]>([
+    const subjects = [
         'Математика', 'Физика', 'Химия', 'Информатика',
         'Английский язык', 'Русский язык', 'История', 'Биология'
-    ]);
+    ];
 
     const {
         control,
         handleSubmit,
         formState: { errors },
-        reset,
         watch,
         setValue,
     } = useForm<LessonFormData>({

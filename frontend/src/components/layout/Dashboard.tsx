@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import {
     Menu as MenuIcon,
-    Dashboard,
+    Dashboard as DashboardIcon,
     CalendarToday,
     School,
     Payment,
@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
     const { notifications } = useAppSelector((state) => state.notifications);
 
     const menuItems = [
-        { text: 'Панель управления', icon: <Dashboard />, path: '/dashboard' },
+        { text: 'Панель управления', icon: <DashboardIcon />, path: '/dashboard' },
         { text: 'Календарь', icon: <CalendarToday />, path: '/calendar' },
         { text: 'Мои уроки', icon: <School />, path: '/lessons' },
         { text: 'Репетиторы', icon: <Person />, path: '/tutors' },

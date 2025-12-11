@@ -1,36 +1,5 @@
-import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
-import type { RootState, AppDispatch } from '../store'
+import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
+import type { RootState, AppDispatch } from '../store';
 
-export const useAppDispatch: () => AppDispatch = useDispatch
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector{
-    "compilerOptions": {
-        "target": "ES2020",
-            "useDefineForClassFields": true,
-            "lib": ["ES2020", "DOM", "DOM.Iterable"],
-            "module": "ESNext",
-            "skipLibCheck": true,
-            "moduleResolution": "bundler",
-            "allowImportingTsExtensions": true,
-            "resolveJsonModule": true,
-            "isolatedModules": true,
-            "noEmit": true,
-            "jsx": "react-jsx",
-            "strict": true,
-            "noUnusedLocals": true,
-            "noUnusedParameters": true,
-            "noFallthroughCasesInSwitch": true,
-            "baseUrl": ".",
-            "paths": {
-            "@/*": ["src/*"],
-                "@components/*": ["src/components/*"],
-                "@pages/*": ["src/pages/*"],
-                "@services/*": ["src/services/*"],
-                "@store/*": ["src/store/*"],
-                "@utils/*": ["src/utils/*"],
-                "@hooks/*": ["src/hooks/*"],
-                "@types/*": ["src/types/*"]
-        }
-    },
-    "include": ["src"],
-        "references": [{ "path": "./tsconfig.node.json" }]
-}
+export const useAppDispatch: () => AppDispatch = () => useDispatch<AppDispatch>();
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;

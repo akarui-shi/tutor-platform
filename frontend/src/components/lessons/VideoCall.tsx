@@ -33,7 +33,8 @@ const VideoCall: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [participants, setParticipants] = useState<any[]>([]);
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-    const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+    const [, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+    const [peerConnection] = useState<RTCPeerConnection | null>(null);
     const [videoEnabled, setVideoEnabled] = useState(true);
     const [audioEnabled, setAudioEnabled] = useState(true);
     const [screenSharing, setScreenSharing] = useState(false);

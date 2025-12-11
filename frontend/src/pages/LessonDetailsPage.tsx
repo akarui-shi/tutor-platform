@@ -177,12 +177,12 @@ const LessonDetailsPage: React.FC = () => {
                                     {currentLesson.subject}
                                 </Typography>
                                 <Box display="flex" gap={1} alignItems="center" mb={2}>
-                                    <Chip
-                                        icon={statusInfo.icon}
-                                        label={statusInfo.label}
-                                        color={statusInfo.color as any}
-                                        size="small"
-                                    />
+                                        <Chip
+                                            icon={statusInfo.icon || undefined}
+                                            label={statusInfo.label}
+                                            color={statusInfo.color as any}
+                                            size="small"
+                                        />
                                     <Chip
                                         label={paymentStatusInfo.label}
                                         color={paymentStatusInfo.color as any}

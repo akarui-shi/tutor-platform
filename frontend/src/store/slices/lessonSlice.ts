@@ -26,7 +26,7 @@ const initialState: LessonState = {
 // Async thunks
 export const fetchLessons = createAsyncThunk(
     'lessons/fetchAll',
-    async (params?: any, { rejectWithValue }) => {
+    async (params: any | undefined, { rejectWithValue }) => {
         try {
             const response = await api.lessons.getAll(params);
             return response.data.data;
