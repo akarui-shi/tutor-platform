@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.tutorplatform.auth.dto.AuthResponse;
 import ru.tutorplatform.auth.dto.LoginRequest;
+import ru.tutorplatform.auth.dto.UserDto;
 import ru.tutorplatform.auth.exception.AuthenticationException;
 import ru.tutorplatform.auth.exception.UserAlreadyExistsException;
 
