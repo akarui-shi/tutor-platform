@@ -28,52 +28,52 @@ public class JwtTokenProvider {
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
 
         return Jwts.builder()
-                .setSubject(userId.toString())
+                .subject(userId.toString())
                 .claim("email", email)
                 .claim("role", role)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
+                .issuedAt(now)
+                .expiration(expiryDate)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
     public Long getUserIdFromToken(String token) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = (Claims) Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parse(token)
+                .getPayload();
         return Long.parseLong(claims.getSubject());
     }
 
     public String getEmailFromToken(String token) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = (Claims) Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parse(token)
+                .getPayload();
         return (String) claims.get("email");
     }
 
     public String getRoleFromToken(String token) {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(key)
+        Claims claims = (Claims) Jwts.parser()
+                .verifyWith(key)
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parse(token)
+                .getPayload();
         return (String) claims.get("role");
     }
 
     public boolean validateToken(String token) {
         try {
             SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
+            Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseClaimsJws(token);
+                    .parse(token);
             return true;
         } catch (JwtException e) {
             log.error("Ошибка валидации JWT: {}", e.getMessage());
