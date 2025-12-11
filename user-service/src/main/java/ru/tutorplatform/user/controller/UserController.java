@@ -30,6 +30,13 @@ public class UserController {
         }
         return ResponseEntity.ok(ApiResponse.success(user));
     }
+
+    @GetMapping("/by-email")
+    public ResponseEntity<UserDto> getUserByEmail(@RequestParam String email) {
+        UserDto user = userService.getUserByEmail(email);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
+    }
 }
-
-
