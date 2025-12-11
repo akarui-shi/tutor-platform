@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import ru.tutorplatform.auth.dto.CreateUserRequest;
 import ru.tutorplatform.auth.dto.UserDto;
 
 import java.util.Optional;
