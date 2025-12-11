@@ -38,6 +38,13 @@ public class UserService {
                 .orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public UserDto getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .map(this::toDto)
+                .orElse(null);
+    }
+
     private UserDto toDto(User user) {
         if (user == null) {
             return null;
@@ -46,13 +53,10 @@ public class UserService {
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
+                .passwordHash(user.getPasswordHash())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .role(user.getRole())
                 .build();
     }
 }
-
-
-
-
