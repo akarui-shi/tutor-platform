@@ -15,8 +15,14 @@ public class GatewayConfig {
                         .path("/api/users/**")
                         .uri("lb://USER-SERVICE"))
 
+                .route("auth-service", r -> r
+                        .path("/api/auth/**")
+//                        .uri("http://localhost:8081"))
+                        .uri("lb://USER-SERVICE"))
+
                 .route("lesson-service", r -> r
                         .path("/api/lessons/**")
+                        .filters(f -> f.stripPrefix(1))
                         .uri("lb://LESSON-SERVICE"))
 
                 .route("payment-service", r -> r
