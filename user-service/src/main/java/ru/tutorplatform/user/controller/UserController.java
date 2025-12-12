@@ -22,6 +22,14 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(user));
     }
 
+    @GetMapping("/tutors")
+    public ResponseEntity<ApiResponse<java.util.List<UserDto>>> getTutors(
+            @RequestParam(required = false) String subject,
+            @RequestParam(required = false) Integer minRating) {
+        java.util.List<UserDto> tutors = userService.getTutors(subject, minRating);
+        return ResponseEntity.ok(ApiResponse.success(tutors));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserDto>> getUser(@PathVariable Long id) {
         UserDto user = userService.getUser(id);
