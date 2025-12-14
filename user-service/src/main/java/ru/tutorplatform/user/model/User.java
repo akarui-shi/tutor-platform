@@ -35,5 +35,15 @@ public class User {
 
     @Column(name = "last_name")
     private String lastName;
-}
 
+    // НОВОЕ ПОЛЕ - описание/биография
+    @Column(name = "bio", length = 1000)
+    private String bio;
+
+    // ДОПОЛНИТЕЛЬНО: можно добавить предметы и опыт
+    @Column(name = "subjects")
+    private String subjects; // Например: "Математика, Физика"
+
+    @Column(name = "experience_years")
+    private Integer experienceYears; // Опыт работы в годах
+}

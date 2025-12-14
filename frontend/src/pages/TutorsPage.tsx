@@ -42,13 +42,24 @@ const TutorsPage: React.FC = () => {
                                 <Typography variant="body2" gutterBottom>
                                     {tutor.bio || 'Нет описания'}
                                 </Typography>
-                                <Chip
-                                    label={`Ставка: ${tutor.hourlyRate || 0} ₽/час`}
-                                    size="small"
-                                    sx={{ mr: 1, mt: 1 }}
-                                />
-                                {tutor.subjects?.map((subject) => (
-                                    <Chip key={subject} label={subject} size="small" sx={{ mr: 1, mt: 1 }} />
+
+                                {/* Отображаем опыт работы */}
+                                {tutor.experienceYears && (
+                                    <Chip
+                                        label={`Опыт: ${tutor.experienceYears} ${tutor.experienceYears === 1 ? 'год' : tutor.experienceYears < 5 ? 'года' : 'лет'}`}
+                                        size="small"
+                                        color="primary"
+                                        sx={{ mr: 1, mt: 1 }}
+                                    />
+                                )}
+
+                                {tutor.subjects && tutor.subjects.split(',').map((subject, index) => (
+                                    <Chip
+                                        key={index}
+                                        label={subject.trim()}
+                                        size="small"
+                                        sx={{ mr: 1, mt: 1 }}
+                                    />
                                 ))}
                             </CardContent>
                         </Card>
@@ -60,9 +71,3 @@ const TutorsPage: React.FC = () => {
 };
 
 export default TutorsPage;
-
-
-
-
-
-

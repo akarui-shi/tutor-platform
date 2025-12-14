@@ -16,7 +16,7 @@ public class UserDto {
     private String firstName;
     private String lastName;
     private String role;
+    private String bio;              // Описание/биография
+    private String subjects;         // Предметы (например: "Математика, Физика")
+    private Integer experienceYears; // Опыт работы в годах
 }
-
-
-

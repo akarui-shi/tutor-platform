@@ -3,8 +3,8 @@ export interface Lesson {
     studentId: number;
     tutorId: number;
     subjectId: number;
-    scheduledTime: string;  // ← изменено с startTime
-    durationMinutes: number;  // ← изменено с duration
+    scheduledTime: string;
+    durationMinutes: number;
     status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
     price: number;
     meetingUrl?: string;
@@ -22,12 +22,11 @@ export interface Lesson {
     materials?: string[];
 }
 
-
 export interface CreateLessonRequest {
     studentId: number;
     tutorId: number;
     subjectId: number;
-    scheduledTime: string; // ISO 8601 format: "2024-01-01T10:00:00"
+    scheduledTime: string;
     durationMinutes: number;
     price: number;
 }
@@ -48,10 +47,9 @@ export interface User {
     lastName: string;
     role: 'STUDENT' | 'TUTOR' | 'ADMIN';
     avatar?: string;
-    bio?: string;
-    subjects?: string[];
-    rating?: number;
-    hourlyRate?: number;
+    bio?: string;                  // Описание
+    subjects?: string;             // Предметы как строка "Математика, Физика"
+    experienceYears?: number;      // Опыт работы в годах
 }
 
 export interface Payment {

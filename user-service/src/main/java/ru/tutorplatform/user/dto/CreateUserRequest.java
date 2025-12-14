@@ -27,6 +27,8 @@ public class CreateUserRequest {
 
     private String lastName;
 
+    // НОВЫЕ ПОЛЯ (опциональные)
+    private String bio;              // Описание/биография
+    private String subjects;         // Предметы
+    private Integer experienceYears; // Опыт работы
 }
-
-

@@ -27,6 +27,9 @@ public class UserService {
                 .email(request.getEmail())
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
+                .bio(request.getBio())
+                .subjects(request.getSubjects())
+                .experienceYears(request.getExperienceYears())
                 .build();
 
         user = userRepository.save(user);
@@ -42,14 +45,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<UserDto> getTutors(String subject, Integer minRating) {
-        // Получаем всех пользователей с ролью TUTOR
         List<User> tutors = userRepository.findByRole("TUTOR");
-        
-        // Фильтруем по предмету и рейтингу (если они указаны)
-        // Примечание: в текущей модели User нет полей subject и rating,
-        // поэтому пока возвращаем всех репетиторов
-        // В будущем можно добавить эти поля в модель и фильтрацию
-        
         return tutors.stream()
                 .map(this::toDto)
                 .toList();
@@ -66,10 +62,9 @@ public class UserService {
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .role(user.getRole())
+                .bio(user.getBio())
+                .subjects(user.getSubjects())
+                .experienceYears(user.getExperienceYears())
                 .build();
     }
 }
-
-
-
-
