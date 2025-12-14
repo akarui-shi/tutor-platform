@@ -53,10 +53,7 @@ const LessonForm: React.FC<LessonFormProps> = ({
     const { loading, error } = useAppSelector((state) => state.lessons);
 
     const [tutors, setTutors] = useState<any[]>([]);
-    const subjects = [
-        'Математика', 'Физика', 'Химия', 'Информатика',
-        'Английский язык', 'Русский язык', 'История', 'Биология'
-    ];
+    const [availableSubjects, setAvailableSubjects] = useState<string[]>([]);
 
     const {
         control,
@@ -70,14 +67,39 @@ const LessonForm: React.FC<LessonFormProps> = ({
             tutorId: initialData?.tutorId || 0,
             subject: initialData?.subject || '',
             description: initialData?.description || '',
-            startTime: initialData?.startTime || format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm"), // +1 час
-            endTime: initialData?.endTime || format(addHours(new Date(), 2), "yyyy-MM-dd'T'HH:mm"), // +2 часа
+            startTime: initialData?.startTime || format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm"),
+            endTime: initialData?.endTime || format(addHours(new Date(), 2), "yyyy-MM-dd'T'HH:mm"),
             price: initialData?.price || 1000,
         },
-
     });
 
     const startTime = watch('startTime');
+    const selectedTutorId = watch('tutorId');
+
+    // Обновляем доступные предметы при выборе репетитора
+    useEffect(() => {
+        if (selectedTutorId) {
+            const selectedTutor = tutors.find(t => t.id === selectedTutorId);
+            if (selectedTutor && selectedTutor.subjects) {
+                // Разбиваем строку предметов на массив
+                const subjects = selectedTutor.subjects
+                    .split(',')
+                    .map((s: string) => s.trim())
+                    .filter((s: string) => s.length > 0);
+                setAvailableSubjects(subjects);
+
+                // Автоматически выбираем первый предмет, если текущий не входит в список
+                const currentSubject = watch('subject');
+                if (!subjects.includes(currentSubject)) {
+                    setValue('subject', subjects[0] || '');
+                }
+            } else {
+                setAvailableSubjects([]);
+            }
+        } else {
+            setAvailableSubjects([]);
+        }
+    }, [selectedTutorId, tutors, setValue, watch]);
 
     useEffect(() => {
         if (startTime) {
@@ -100,12 +122,10 @@ const LessonForm: React.FC<LessonFormProps> = ({
     }, []);
 
     const onSubmit = async (data: LessonFormData) => {
-        // Вычисляем длительность в минутах (минимум 15 минут)
         const start = new Date(data.startTime);
         const end = new Date(data.endTime);
         const durationMinutes = Math.max(15, Math.round((end.getTime() - start.getTime()) / (1000 * 60)));
 
-        // Маппинг предметов на ID (временное решение - можно улучшить)
         const subjectMap: Record<string, number> = {
             'Математика': 1,
             'Физика': 2,
@@ -115,9 +135,19 @@ const LessonForm: React.FC<LessonFormProps> = ({
             'Русский язык': 6,
             'История': 7,
             'Биология': 8,
+            'Алгебра': 1,
+            'Геометрия': 1,
+            'Астрономия': 2,
+            'Механика': 2,
+            'Подготовка к IELTS': 5,
+            'Программирование': 4,
+            'Python': 4,
+            'Органическая химия': 3,
+            'Литература': 6,
+            'Обществознание': 7,
+            'Экология': 8,
         };
 
-        // Функция для форматирования даты без конвертации в UTC
         const formatLocalDateTime = (date: Date): string => {
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -125,19 +155,16 @@ const LessonForm: React.FC<LessonFormProps> = ({
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
             const seconds = String(date.getSeconds()).padStart(2, '0');
-
             return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
         };
 
-        // Преобразуем дату в формат ISO 8601 БЕЗ конвертации в UTC
         const scheduledTime = formatLocalDateTime(new Date(data.startTime));
 
-        // Преобразуем данные в формат, ожидаемый бэкендом
         const formData: CreateLessonRequest = {
             studentId: user?.id || 0,
             tutorId: data.tutorId,
             subjectId: subjectMap[data.subject] || 1,
-            scheduledTime: scheduledTime, // Теперь отправляется локальное время
+            scheduledTime: scheduledTime,
             durationMinutes: durationMinutes,
             price: data.price,
         };
@@ -156,7 +183,6 @@ const LessonForm: React.FC<LessonFormProps> = ({
             console.error('Error submitting lesson:', error);
         }
     };
-
 
     const calculateDuration = () => {
         if (startTime && watch('endTime')) {
@@ -203,7 +229,7 @@ const LessonForm: React.FC<LessonFormProps> = ({
                                         >
                                             {tutors.map((tutor) => (
                                                 <MenuItem key={tutor.id} value={tutor.id}>
-                                                    {tutor.firstName} {tutor.lastName} - {tutor.subjects?.join(', ')}
+                                                    {tutor.firstName} {tutor.lastName} {tutor.subjects ? `- ${tutor.subjects}` : ''}
                                                 </MenuItem>
                                             ))}
                                         </Select>
@@ -224,18 +250,21 @@ const LessonForm: React.FC<LessonFormProps> = ({
                                 render={({ field }) => (
                                     <Autocomplete
                                         {...field}
-                                        freeSolo
-                                        options={subjects}
+                                        options={availableSubjects.length > 0 ? availableSubjects : []}
+                                        disabled={!selectedTutorId || availableSubjects.length === 0}
                                         renderInput={(params) => (
                                             <TextField
                                                 {...params}
                                                 label="Предмет *"
                                                 error={!!errors.subject}
-                                                helperText={errors.subject?.message}
+                                                helperText={
+                                                    errors.subject?.message ||
+                                                    (!selectedTutorId ? 'Сначала выберите репетитора' : '')
+                                                }
                                             />
                                         )}
-                                        onChange={(_, value) => field.onChange(value)}
-                                        value={field.value}
+                                        onChange={(_, value) => field.onChange(value || '')}
+                                        value={field.value || null}
                                     />
                                 )}
                             />

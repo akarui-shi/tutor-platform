@@ -25,5 +25,7 @@ public class LessonDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime completedAt;
+    private String subjectName;      // Название предмета
+    private String tutorName;        // Имя репетитора
+    private String studentName;      // Имя студента
 }
-

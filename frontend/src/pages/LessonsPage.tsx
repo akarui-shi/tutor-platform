@@ -14,6 +14,7 @@ import {
     Typography,
     Button,
     Alert,
+    Avatar,
 } from '@mui/material';
 import {
     Visibility,
@@ -21,18 +22,23 @@ import {
     PlayArrow,
     Cancel,
     CheckCircle,
+    Person,
+    School,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { format, parseISO, isValid, addMinutes } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLessons, cancelLesson } from '../store/slices/lessonSlice';
+import api from '../services/api';
 
 const LessonList: React.FC = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const { lessons, loading, error } = useAppSelector((state) => state.lessons);
+    const { user } = useAppSelector((state) => state.auth);
     const [renderError, setRenderError] = useState<string | null>(null);
+    const [usersCache, setUsersCache] = useState<Record<number, any>>({});
 
     useEffect(() => {
         dispatch(fetchLessons(undefined))
@@ -42,6 +48,60 @@ const LessonList: React.FC = () => {
                 setRenderError(err.toString());
             });
     }, [dispatch]);
+
+    // Загружаем информацию о пользователях
+    useEffect(() => {
+        const loadUsers = async () => {
+            if (!lessons || lessons.length === 0) return;
+
+            const userIds = new Set<number>();
+            lessons.forEach(lesson => {
+                userIds.add(lesson.tutorId);
+                userIds.add(lesson.studentId);
+            });
+
+            const newCache: Record<number, any> = { ...usersCache };
+
+            for (const userId of userIds) {
+                if (!newCache[userId]) {
+                    try {
+                        const response = await api.users.getById(userId);
+                        newCache[userId] = response.data.data;
+                    } catch (err) {
+                        console.error(`Error loading user ${userId}:`, err);
+                        newCache[userId] = {
+                            firstName: 'Пользователь',
+                            lastName: `#${userId}`
+                        };
+                    }
+                }
+            }
+
+            setUsersCache(newCache);
+        };
+
+        loadUsers();
+    }, [lessons]);
+
+    const getSubjectName = (subjectId: number): string => {
+        const subjectMap: Record<number, string> = {
+            1: 'Математика',
+            2: 'Физика',
+            3: 'Химия',
+            4: 'Информатика',
+            5: 'Английский язык',
+            6: 'Русский язык',
+            7: 'История',
+            8: 'Биология',
+        };
+        return subjectMap[subjectId] || `Предмет #${subjectId}`;
+    };
+
+    const getUserName = (userId: number): string => {
+        const userData = usersCache[userId];
+        if (!userData) return `Загрузка...`;
+        return `${userData.firstName || ''} ${userData.lastName || ''}`.trim() || `Пользователь #${userId}`;
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -78,15 +138,9 @@ const LessonList: React.FC = () => {
 
         try {
             const date = parseISO(dateString);
-
-            if (!isValid(date)) {
-                console.error('Invalid date:', dateString);
-                return 'Неверная дата';
-            }
-
+            if (!isValid(date)) return 'Неверная дата';
             return format(date, 'dd MMMM yyyy', { locale: ru });
         } catch (e) {
-            console.error('Date format error:', e, dateString);
             return 'Ошибка форматирования';
         }
     };
@@ -96,15 +150,9 @@ const LessonList: React.FC = () => {
 
         try {
             const date = parseISO(dateString);
-
-            if (!isValid(date)) {
-                console.error('Invalid time:', dateString);
-                return '--:--';
-            }
-
+            if (!isValid(date)) return '--:--';
             return format(date, 'HH:mm', { locale: ru });
         } catch (e) {
-            console.error('Time format error:', e, dateString);
             return '--:--';
         }
     };
@@ -117,7 +165,6 @@ const LessonList: React.FC = () => {
             const endDate = addMinutes(startDate, durationMinutes);
             return format(endDate, 'HH:mm', { locale: ru });
         } catch (e) {
-            console.error('End time calculation error:', e);
             return '--:--';
         }
     };
@@ -131,11 +178,7 @@ const LessonList: React.FC = () => {
     };
 
     const handleStart = async (id: number) => {
-        try {
-            console.log('Start lesson:', id);
-        } catch (error) {
-            console.error('Error starting lesson:', error);
-        }
+        console.log('Start lesson:', id);
     };
 
     const handleCancel = async (id: number) => {
@@ -213,22 +256,51 @@ const LessonList: React.FC = () => {
                 </TableHead>
                 <TableBody>
                     {lessons.map((lesson) => {
+                        const isStudent = user?.id === lesson.studentId;
+                        const partnerUser = usersCache[isStudent ? lesson.tutorId : lesson.studentId];
+
                         try {
                             return (
                                 <TableRow key={lesson.id} hover>
                                     <TableCell>
-                                        <Typography variant="subtitle2">
-                                            {lesson.subject || `Предмет #${lesson.subjectId}`}
-                                        </Typography>
-                                        {lesson.description && (
-                                            <Typography variant="caption" color="textSecondary">
-                                                {lesson.description.substring(0, 50)}
-                                                {lesson.description.length > 50 ? '...' : ''}
-                                            </Typography>
-                                        )}
+                                        <Box display="flex" alignItems="center" gap={1.5}>
+                                            <Avatar
+                                                sx={{
+                                                    width: 36,
+                                                    height: 36,
+                                                    bgcolor: isStudent ? 'primary.main' : 'success.main'
+                                                }}
+                                            >
+                                                {isStudent ? <School /> : <Person />}
+                                            </Avatar>
+                                            <Box>
+                                                <Typography variant="subtitle2" fontWeight="bold">
+                                                    {getSubjectName(lesson.subjectId)}
+                                                </Typography>
+                                                <Typography variant="caption" color="textSecondary" display="block">
+                                                    {isStudent ? 'с ' : 'для '}
+                                                    {getUserName(isStudent ? lesson.tutorId : lesson.studentId)}
+                                                </Typography>
+                                                {lesson.description && (
+                                                    <Typography
+                                                        variant="caption"
+                                                        color="text.secondary"
+                                                        display="block"
+                                                        sx={{
+                                                            mt: 0.5,
+                                                            fontStyle: 'italic'
+                                                        }}
+                                                    >
+                                                        {lesson.description.length > 35
+                                                            ? `${lesson.description.substring(0, 35)}...`
+                                                            : lesson.description}
+                                                    </Typography>
+                                                )}
+                                            </Box>
+                                        </Box>
                                     </TableCell>
                                     <TableCell>
-                                        <Typography>
+                                        <Typography variant="body2">
                                             {formatDate(lesson.scheduledTime)}
                                         </Typography>
                                         <Typography variant="caption" color="textSecondary">
