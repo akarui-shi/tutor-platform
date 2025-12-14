@@ -2,19 +2,26 @@ export interface Lesson {
     id: number;
     studentId: number;
     tutorId: number;
-    subject: string;
-    description?: string;
-    startTime: string;
-    endTime: string;
-    duration: number; // in minutes
+    subjectId: number;
+    scheduledTime: string;  // ← изменено с startTime
+    durationMinutes: number;  // ← изменено с duration
     status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
     price: number;
-    paymentStatus: 'PENDING' | 'PAID' | 'REFUNDED';
     meetingUrl?: string;
-    materials?: string[];
+    completedAt?: string | null;
     createdAt: string;
     updatedAt: string;
+
+    // Опциональные поля для совместимости с фронтендом
+    subject?: string;
+    description?: string;
+    paymentStatus?: 'PENDING' | 'PAID' | 'REFUNDED';
+    startTime?: string;
+    endTime?: string;
+    duration?: number;
+    materials?: string[];
 }
+
 
 export interface CreateLessonRequest {
     studentId: number;

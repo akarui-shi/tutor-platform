@@ -23,7 +23,7 @@ import {
     CheckCircle,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, addMinutes } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { fetchLessons, cancelLesson } from '../store/slices/lessonSlice';
@@ -73,28 +73,51 @@ const LessonList: React.FC = () => {
         }
     };
 
-    const formatDate = (dateString: string) => {
+    const formatDate = (dateString: string | null | undefined) => {
+        if (!dateString) return 'Дата не указана';
+
         try {
             const date = parseISO(dateString);
+
             if (!isValid(date)) {
+                console.error('Invalid date:', dateString);
                 return 'Неверная дата';
             }
+
             return format(date, 'dd MMMM yyyy', { locale: ru });
         } catch (e) {
             console.error('Date format error:', e, dateString);
-            return 'Неверная дата';
+            return 'Ошибка форматирования';
         }
     };
 
-    const formatTime = (dateString: string) => {
+    const formatTime = (dateString: string | null | undefined) => {
+        if (!dateString) return '--:--';
+
         try {
             const date = parseISO(dateString);
+
             if (!isValid(date)) {
+                console.error('Invalid time:', dateString);
                 return '--:--';
             }
+
             return format(date, 'HH:mm', { locale: ru });
         } catch (e) {
             console.error('Time format error:', e, dateString);
+            return '--:--';
+        }
+    };
+
+    const calculateEndTime = (scheduledTime: string, durationMinutes: number) => {
+        try {
+            const startDate = parseISO(scheduledTime);
+            if (!isValid(startDate)) return '--:--';
+
+            const endDate = addMinutes(startDate, durationMinutes);
+            return format(endDate, 'HH:mm', { locale: ru });
+        } catch (e) {
+            console.error('End time calculation error:', e);
             return '--:--';
         }
     };
@@ -195,7 +218,7 @@ const LessonList: React.FC = () => {
                                 <TableRow key={lesson.id} hover>
                                     <TableCell>
                                         <Typography variant="subtitle2">
-                                            {lesson.subject || 'Без темы'}
+                                            {lesson.subject || `Предмет #${lesson.subjectId}`}
                                         </Typography>
                                         {lesson.description && (
                                             <Typography variant="caption" color="textSecondary">
@@ -206,13 +229,13 @@ const LessonList: React.FC = () => {
                                     </TableCell>
                                     <TableCell>
                                         <Typography>
-                                            {formatDate(lesson.startTime)}
+                                            {formatDate(lesson.scheduledTime)}
                                         </Typography>
                                         <Typography variant="caption" color="textSecondary">
-                                            {formatTime(lesson.startTime)} - {formatTime(lesson.endTime)}
+                                            {formatTime(lesson.scheduledTime)} - {calculateEndTime(lesson.scheduledTime, lesson.durationMinutes)}
                                         </Typography>
                                     </TableCell>
-                                    <TableCell>{lesson.duration || 0} мин</TableCell>
+                                    <TableCell>{lesson.durationMinutes || 0} мин</TableCell>
                                     <TableCell>
                                         <Chip
                                             label={getStatusLabel(lesson.status)}

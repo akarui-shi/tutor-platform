@@ -26,7 +26,6 @@ import {
 import {
     AccessTime,
     Person,
-    Subject,
     AttachMoney,
     Description,
     VideoCall,
@@ -39,7 +38,7 @@ import {
     Schedule,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, parseISO, addMinutes } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
 import { setCurrentLesson, completeLesson, cancelLesson } from '../store/slices/lessonSlice';
@@ -59,12 +58,18 @@ const LessonDetailsPage: React.FC = () => {
     const [openCancelDialog, setOpenCancelDialog] = useState(false);
     const [cancelReason, setCancelReason] = useState('');
     const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchLessonDetails = async () => {
             try {
+                setLoading(true);
+                setError(null);
+
                 if (id) {
                     const response = await api.lessons.getById(parseInt(id));
+                    console.log('Lesson details:', response.data.data);
                     dispatch(setCurrentLesson(response.data.data));
 
                     // Загружаем информацию о репетиторе и студенте
@@ -80,12 +85,20 @@ const LessonDetailsPage: React.FC = () => {
 
                     // Получаем ссылку для подключения
                     if (response.data.data.status === 'IN_PROGRESS' || response.data.data.status === 'SCHEDULED') {
-                        const joinResponse = await api.lessons.getJoinUrl(parseInt(id));
-                        setJoinUrl(joinResponse.data.data);
+                        try {
+                            const joinResponse = await api.lessons.getJoinUrl(parseInt(id));
+                            setJoinUrl(joinResponse.data.data || response.data.data.meetingUrl);
+                        } catch (err) {
+                            // Если API не возвращает joinUrl, используем meetingUrl из урока
+                            setJoinUrl(response.data.data.meetingUrl || '');
+                        }
                     }
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching lesson details:', error);
+                setError(error.response?.data?.message || 'Ошибка загрузки данных урока');
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -111,8 +124,11 @@ const LessonDetailsPage: React.FC = () => {
     };
 
     const handleJoinLesson = () => {
-        if (joinUrl) {
-            window.open(joinUrl, '_blank');
+        const url = joinUrl || currentLesson?.meetingUrl;
+        if (url) {
+            window.open(url, '_blank');
+        } else {
+            alert('Ссылка на урок не доступна');
         }
     };
 
@@ -131,7 +147,7 @@ const LessonDetailsPage: React.FC = () => {
         }
     };
 
-    const getPaymentStatusInfo = (status: string) => {
+    const getPaymentStatusInfo = (status?: string) => {
         switch (status) {
             case 'PAID':
                 return { color: 'success', label: 'Оплачено' };
@@ -140,14 +156,61 @@ const LessonDetailsPage: React.FC = () => {
             case 'REFUNDED':
                 return { color: 'error', label: 'Возврат' };
             default:
-                return { color: 'default', label: status };
+                return { color: 'default', label: 'Не оплачено' };
         }
     };
+
+    const calculateEndTime = (scheduledTime: string, durationMinutes: number) => {
+        try {
+            const startDate = parseISO(scheduledTime);
+            return addMinutes(startDate, durationMinutes);
+        } catch (e) {
+            console.error('End time calculation error:', e);
+            return new Date();
+        }
+    };
+
+    if (loading) {
+        return (
+            <Container>
+                <LinearProgress />
+                <Box textAlign="center" mt={4}>
+                    <Typography>Загрузка данных урока...</Typography>
+                </Box>
+            </Container>
+        );
+    }
+
+    if (error) {
+        return (
+            <Container>
+                <Alert severity="error" sx={{ mt: 4 }}>
+                    {error}
+                </Alert>
+                <Button
+                    startIcon={<ArrowBack />}
+                    onClick={() => navigate('/lessons')}
+                    sx={{ mt: 2 }}
+                >
+                    Вернуться к урокам
+                </Button>
+            </Container>
+        );
+    }
 
     if (!currentLesson) {
         return (
             <Container>
-                <LinearProgress />
+                <Alert severity="warning" sx={{ mt: 4 }}>
+                    Урок не найден
+                </Alert>
+                <Button
+                    startIcon={<ArrowBack />}
+                    onClick={() => navigate('/lessons')}
+                    sx={{ mt: 2 }}
+                >
+                    Вернуться к урокам
+                </Button>
             </Container>
         );
     }
@@ -158,14 +221,17 @@ const LessonDetailsPage: React.FC = () => {
         (user?.id === currentLesson.studentId && currentLesson.status === 'SCHEDULED') ||
         (user?.id === currentLesson.tutorId && currentLesson.status === 'SCHEDULED');
 
+    const startTime = parseISO(currentLesson.scheduledTime);
+    const endTime = calculateEndTime(currentLesson.scheduledTime, currentLesson.durationMinutes);
+
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
             <Button
                 startIcon={<ArrowBack />}
-                onClick={() => navigate(-1)}
+                onClick={() => navigate('/lessons')}
                 sx={{ mb: 3 }}
             >
-                Назад
+                Назад к урокам
             </Button>
 
             <Grid container spacing={3}>
@@ -174,15 +240,18 @@ const LessonDetailsPage: React.FC = () => {
                         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
                             <Box>
                                 <Typography variant="h4" gutterBottom>
-                                    {currentLesson.subject}
+                                    {currentLesson.subject || `Урок #${currentLesson.id}`}
+                                </Typography>
+                                <Typography variant="subtitle1" color="textSecondary" gutterBottom>
+                                    Предмет ID: {currentLesson.subjectId}
                                 </Typography>
                                 <Box display="flex" gap={1} alignItems="center" mb={2}>
-                                        <Chip
-                                            icon={statusInfo.icon || undefined}
-                                            label={statusInfo.label}
-                                            color={statusInfo.color as any}
-                                            size="small"
-                                        />
+                                    <Chip
+                                        icon={statusInfo.icon || undefined}
+                                        label={statusInfo.label}
+                                        color={statusInfo.color as any}
+                                        size="small"
+                                    />
                                     <Chip
                                         label={paymentStatusInfo.label}
                                         color={paymentStatusInfo.color as any}
@@ -227,11 +296,11 @@ const LessonDetailsPage: React.FC = () => {
                                             secondary={
                                                 <>
                                                     <Typography variant="body2">
-                                                        {format(new Date(currentLesson.startTime), 'dd MMMM yyyy', { locale: ru })}
+                                                        {format(startTime, 'dd MMMM yyyy', { locale: ru })}
                                                     </Typography>
                                                     <Typography variant="caption" color="textSecondary">
-                                                        {format(new Date(currentLesson.startTime), 'HH:mm', { locale: ru })} -{' '}
-                                                        {format(new Date(currentLesson.endTime), 'HH:mm', { locale: ru })}
+                                                        {format(startTime, 'HH:mm', { locale: ru })} -{' '}
+                                                        {format(endTime, 'HH:mm', { locale: ru })}
                                                     </Typography>
                                                 </>
                                             }
@@ -244,7 +313,7 @@ const LessonDetailsPage: React.FC = () => {
                                         </ListItemIcon>
                                         <ListItemText
                                             primary="Длительность"
-                                            secondary={`${currentLesson.duration} минут`}
+                                            secondary={`${currentLesson.durationMinutes} минут`}
                                         />
                                     </ListItem>
 
@@ -354,32 +423,44 @@ const LessonDetailsPage: React.FC = () => {
                             </>
                         )}
 
+                        {currentLesson.meetingUrl && (
+                            <>
+                                <Divider sx={{ my: 2 }} />
+                                <Box>
+                                    <Typography variant="subtitle2" color="textSecondary">
+                                        Ссылка для подключения
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ wordBreak: 'break-all' }}>
+                                        {currentLesson.meetingUrl}
+                                    </Typography>
+                                </Box>
+                            </>
+                        )}
+
                         <Divider sx={{ my: 3 }} />
 
-                        <Box display="flex" gap={2} justifyContent="space-between">
-                            {currentLesson.status === 'SCHEDULED' && (
-                                <>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        startIcon={<VideoCall />}
-                                        onClick={handleJoinLesson}
-                                        disabled={!joinUrl}
-                                    >
-                                        Присоединиться к уроку
-                                    </Button>
+                        <Box display="flex" gap={2} flexWrap="wrap">
+                            {(currentLesson.status === 'SCHEDULED' || currentLesson.status === 'IN_PROGRESS') && (
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    startIcon={<VideoCall />}
+                                    onClick={handleJoinLesson}
+                                    disabled={!joinUrl && !currentLesson.meetingUrl}
+                                >
+                                    Присоединиться к уроку
+                                </Button>
+                            )}
 
-                                    {currentLesson.paymentStatus !== 'PAID' && (
-                                        <Button
-                                            variant="contained"
-                                            color="success"
-                                            startIcon={<Payment />}
-                                            onClick={() => setOpenPaymentDialog(true)}
-                                        >
-                                            Оплатить урок
-                                        </Button>
-                                    )}
-                                </>
+                            {currentLesson.status === 'SCHEDULED' && currentLesson.paymentStatus !== 'PAID' && (
+                                <Button
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={<Payment />}
+                                    onClick={() => setOpenPaymentDialog(true)}
+                                >
+                                    Оплатить урок
+                                </Button>
                             )}
 
                             {currentLesson.status === 'IN_PROGRESS' && user?.id === currentLesson.tutorId && (
@@ -408,10 +489,10 @@ const LessonDetailsPage: React.FC = () => {
                                 variant="outlined"
                                 startIcon={<VideoCall />}
                                 onClick={handleJoinLesson}
-                                disabled={!joinUrl}
+                                disabled={!joinUrl && !currentLesson.meetingUrl}
                                 sx={{ mb: 1 }}
                             >
-                                Присоединиться к уроку
+                                Присоединиться
                             </Button>
 
                             {currentLesson.paymentStatus !== 'PAID' && (
@@ -426,16 +507,6 @@ const LessonDetailsPage: React.FC = () => {
                                     Оплатить урок
                                 </Button>
                             )}
-
-                            <Button
-                                fullWidth
-                                variant="outlined"
-                                startIcon={<Download />}
-                                onClick={() => navigate(`/lessons/${id}/materials`)}
-                                sx={{ mb: 1 }}
-                            >
-                                Материалы урока
-                            </Button>
 
                             {canEdit && (
                                 <>
@@ -473,11 +544,12 @@ const LessonDetailsPage: React.FC = () => {
 
                     {currentLesson.status === 'CANCELLED' && (
                         <Alert severity="error">
-                            Урок отменен. {currentLesson.updatedAt && (
-                            <Typography variant="caption" display="block">
-                                Отменен: {format(new Date(currentLesson.updatedAt), 'dd.MM.yyyy HH:mm')}
-                            </Typography>
-                        )}
+                            Урок отменен.
+                            {currentLesson.updatedAt && (
+                                <Typography variant="caption" display="block">
+                                    Отменен: {format(parseISO(currentLesson.updatedAt), 'dd.MM.yyyy HH:mm')}
+                                </Typography>
+                            )}
                         </Alert>
                     )}
                 </Grid>
