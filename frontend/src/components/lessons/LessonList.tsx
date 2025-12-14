@@ -147,11 +147,15 @@ const LessonList: React.FC = () => {
                             </TableCell>
                             <TableCell>
                                 <Typography>
-                                    {format(new Date(lesson.startTime), 'dd MMMM yyyy', { locale: ru })}
+                                    {lesson.startTime && format(new Date(lesson.startTime), 'dd MMMM yyyy', { locale: ru })}
+                                    {lesson.scheduledTime && !lesson.startTime && format(new Date(lesson.scheduledTime), 'dd MMMM yyyy', { locale: ru })}
                                 </Typography>
                                 <Typography variant="caption" color="textSecondary">
-                                    {format(new Date(lesson.startTime), 'HH:mm', { locale: ru })} -{' '}
-                                    {format(new Date(lesson.endTime), 'HH:mm', { locale: ru })}
+                                    {format(new Date(lesson.startTime || lesson.scheduledTime), 'HH:mm', { locale: ru })} -{' '}
+                                    {lesson.endTime
+                                        ? format(new Date(lesson.endTime), 'HH:mm', { locale: ru })
+                                        : format(new Date(new Date(lesson.scheduledTime).getTime() + lesson.durationMinutes * 60000), 'HH:mm', { locale: ru })
+                                    }
                                 </Typography>
                             </TableCell>
                             <TableCell>{lesson.duration} мин</TableCell>

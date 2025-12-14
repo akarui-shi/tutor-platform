@@ -4,8 +4,12 @@ import {
     Box,
     Button,
     Container,
+    FormControl,
     Grid,
+    InputLabel,
+    MenuItem,
     Paper,
+    Select,
     Stack,
     TextField,
     Typography,
@@ -24,10 +28,15 @@ const RegisterPage: React.FC = () => {
         lastName: '',
         email: '',
         password: '',
+        role: 'STUDENT', // По умолчанию - студент
     });
 
     const handleChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
         setForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
+
+    const handleRoleChange = (event: any) => {
+        setForm((prev) => ({ ...prev, role: event.target.value }));
     };
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -96,6 +105,19 @@ const RegisterPage: React.FC = () => {
                             fullWidth
                         />
 
+                        {/* НОВОЕ ПОЛЕ - Выбор роли */}
+                        <FormControl fullWidth required>
+                            <InputLabel>Роль</InputLabel>
+                            <Select
+                                value={form.role}
+                                label="Роль"
+                                onChange={handleRoleChange}
+                            >
+                                <MenuItem value="STUDENT">Студент</MenuItem>
+                                <MenuItem value="TUTOR">Преподаватель</MenuItem>
+                            </Select>
+                        </FormControl>
+
                         {error && <Alert severity="error">{error}</Alert>}
 
                         <Button type="submit" variant="contained" disabled={loading}>
@@ -112,9 +134,3 @@ const RegisterPage: React.FC = () => {
 };
 
 export default RegisterPage;
-
-
-
-
-
-

@@ -70,10 +70,11 @@ const LessonForm: React.FC<LessonFormProps> = ({
             tutorId: initialData?.tutorId || 0,
             subject: initialData?.subject || '',
             description: initialData?.description || '',
-            startTime: initialData?.startTime || format(new Date(), "yyyy-MM-dd'T'HH:mm"),
-            endTime: initialData?.endTime || format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm"),
+            startTime: initialData?.startTime || format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm"), // +1 час
+            endTime: initialData?.endTime || format(addHours(new Date(), 2), "yyyy-MM-dd'T'HH:mm"), // +2 часа
             price: initialData?.price || 1000,
         },
+
     });
 
     const startTime = watch('startTime');
@@ -116,15 +117,27 @@ const LessonForm: React.FC<LessonFormProps> = ({
             'Биология': 8,
         };
 
-        // Преобразуем дату в формат ISO 8601 без миллисекунд для LocalDateTime
-        const scheduledTime = new Date(data.startTime).toISOString().slice(0, 19);
+        // Функция для форматирования даты без конвертации в UTC
+        const formatLocalDateTime = (date: Date): string => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+
+            return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+        };
+
+        // Преобразуем дату в формат ISO 8601 БЕЗ конвертации в UTC
+        const scheduledTime = formatLocalDateTime(new Date(data.startTime));
 
         // Преобразуем данные в формат, ожидаемый бэкендом
         const formData: CreateLessonRequest = {
             studentId: user?.id || 0,
             tutorId: data.tutorId,
-            subjectId: subjectMap[data.subject] || 1, // Используем маппинг или дефолтное значение
-            scheduledTime: scheduledTime, // Формат ISO 8601: "2024-01-01T10:00:00"
+            subjectId: subjectMap[data.subject] || 1,
+            scheduledTime: scheduledTime, // Теперь отправляется локальное время
             durationMinutes: durationMinutes,
             price: data.price,
         };
@@ -143,6 +156,7 @@ const LessonForm: React.FC<LessonFormProps> = ({
             console.error('Error submitting lesson:', error);
         }
     };
+
 
     const calculateDuration = () => {
         if (startTime && watch('endTime')) {

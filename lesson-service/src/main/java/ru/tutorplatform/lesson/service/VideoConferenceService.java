@@ -1,17 +1,19 @@
 package ru.tutorplatform.lesson.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -20,82 +22,146 @@ import java.util.Map;
 public class VideoConferenceService {
 
     private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper;
 
-    @Value("${video.zoom.api-key}")
-    private String zoomApiKey;
+    @Value("${video.zoom.account-id}")
+    private String zoomAccountId;
 
-    @Value("${video.zoom.api-secret}")
-    private String zoomApiSecret;
+    @Value("${video.zoom.client-id}")
+    private String zoomClientId;
+
+    @Value("${video.zoom.client-secret}")
+    private String zoomClientSecret;
 
     @Value("${video.zoom.base-url:https://api.zoom.us/v2}")
     private String zoomBaseUrl;
 
+    @Value("${video.zoom.oauth-url:https://zoom.us/oauth/token}")
+    private String zoomOAuthUrl;
+
+    private String cachedAccessToken;
+    private long tokenExpirationTime;
+
     public String createMeeting(Long lessonId, LocalDateTime startTime, Integer duration) {
         try {
-            // Для Zoom
-            if (zoomApiKey != null && zoomApiSecret != null) {
+            // Проверяем, настроен ли Zoom
+            if (zoomAccountId != null && !zoomAccountId.isEmpty() &&
+                    zoomClientId != null && !zoomClientId.isEmpty()) {
                 return createZoomMeeting(lessonId, startTime, duration);
             }
 
-            // Для Whereby
-            return createWherebyMeeting(lessonId, startTime, duration);
+            log.warn("Zoom не настроен, используется заглушка");
+            return generateGenericMeetingUrl(lessonId);
 
         } catch (Exception e) {
-            log.error("Не удалось создать видеоконференцию", e);
+            log.error("Не удалось создать видеоконференцию для урока {}", lessonId, e);
             return generateGenericMeetingUrl(lessonId);
         }
     }
 
     private String createZoomMeeting(Long lessonId, LocalDateTime startTime, Integer duration) {
-        String token = generateZoomToken();
+        try {
+            String accessToken = getAccessToken();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(token);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, Object> requestBody = Map.of(
-                "topic", "Урок #" + lessonId,
-                "type", 2, // Запланированная встреча
-                "start_time", startTime.toString(),
-                "duration", duration,
-                "timezone", "Europe/Moscow",
-                "settings", Map.of(
-                        "host_video", true,
-                        "participant_video", true,
-                        "join_before_host", false,
-                        "mute_upon_entry", true,
-                        "waiting_room", true
-                )
-        );
+            // Форматируем время для Zoom API (ISO 8601)
+            String formattedStartTime = startTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("topic", "Урок #" + lessonId);
+            requestBody.put("type", 2); // Запланированная встреча
+            requestBody.put("start_time", formattedStartTime);
+            requestBody.put("duration", duration);
+            requestBody.put("timezone", "Europe/Moscow");
 
-        ResponseEntity<Map> response = restTemplate.postForEntity(
-                zoomBaseUrl + "/users/me/meetings",
-                request,
-                Map.class
-        );
+            Map<String, Object> settings = new HashMap<>();
+            settings.put("host_video", true);
+            settings.put("participant_video", true);
+            settings.put("join_before_host", false);
+            settings.put("mute_upon_entry", true);
+            settings.put("waiting_room", true);
+            settings.put("auto_recording", "none");
+            requestBody.put("settings", settings);
 
-        if (response.getStatusCode() == HttpStatus.CREATED) {
-            Map<String, Object> responseBody = response.getBody();
-            return (String) responseBody.get("join_url");
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+            log.info("Создание Zoom встречи для урока {}", lessonId);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    zoomBaseUrl + "/users/me/meetings",
+                    request,
+                    Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.CREATED && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                String joinUrl = (String) responseBody.get("join_url");
+                log.info("Zoom встреча создана успешно: {}", joinUrl);
+                return joinUrl;
+            }
+
+            throw new RuntimeException("Не удалось создать Zoom встречу");
+
+        } catch (Exception e) {
+            log.error("Ошибка при создании Zoom встречи", e);
+            throw new RuntimeException("Ошибка создания Zoom встречи: " + e.getMessage(), e);
+        }
+    }
+
+    private String getAccessToken() {
+        // Проверяем кэшированный токен
+        if (cachedAccessToken != null && System.currentTimeMillis() < tokenExpirationTime) {
+            return cachedAccessToken;
         }
 
-        throw new RuntimeException("Failed to create Zoom meeting");
-    }
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-    private String createWherebyMeeting(Long lessonId, LocalDateTime startTime, Integer duration) {
-        // Аналогичная реализация для Whereby
-        return "https://whereby.com/tutor-" + lessonId;
-    }
+            // Базовая аутентификация
+            String auth = zoomClientId + ":" + zoomClientSecret;
+            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+            headers.set("Authorization", "Basic " + encodedAuth);
 
-    private String generateZoomToken() {
-        // Генерация JWT токена для Zoom API
-        // Реализация зависит от Zoom API версии
-        return "zoom-jwt-token";
+            MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+            body.add("grant_type", "account_credentials");
+            body.add("account_id", zoomAccountId);
+
+            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+
+            log.info("Получение Zoom access token");
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(
+                    zoomOAuthUrl,
+                    request,
+                    Map.class
+            );
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map<String, Object> responseBody = response.getBody();
+                cachedAccessToken = (String) responseBody.get("access_token");
+                Integer expiresIn = (Integer) responseBody.get("expires_in");
+
+                // Кэшируем токен на 90% от времени жизни
+                tokenExpirationTime = System.currentTimeMillis() + (expiresIn * 900L);
+
+                log.info("Zoom access token получен успешно");
+                return cachedAccessToken;
+            }
+
+            throw new RuntimeException("Не удалось получить access token");
+
+        } catch (Exception e) {
+            log.error("Ошибка при получении Zoom access token", e);
+            throw new RuntimeException("Ошибка получения Zoom токена: " + e.getMessage(), e);
+        }
     }
 
     private String generateGenericMeetingUrl(Long lessonId) {
-        return "https://tutor-platform.ru/meeting/" + lessonId;
+        // Заглушка для тестирования без настроенного Zoom
+        return "https://meet.jit.si/tutor-lesson-" + lessonId;
     }
 }

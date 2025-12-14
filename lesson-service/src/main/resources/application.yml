@@ -48,12 +48,19 @@ eureka:
 
 video:
   zoom:
-    api-key: ${ZOOM_API_KEY:}
-    api-secret: ${ZOOM_API_SECRET:}
+    account-id: ${ZOOM_ACCOUNT_ID:}
+    client-id: ${ZOOM_CLIENT_ID:}
+    client-secret: ${ZOOM_CLIENT_SECRET:}
     base-url: https://api.zoom.us/v2
-  whereby:
-    api-key: ${WHEREBY_API_KEY:}
-    base-url: https://api.whereby.dev/v1
+    oauth-url: https://zoom.us/oauth/token
+#video:
+#  zoom:
+#    account-id: ${lSuAdT2kQ0eGi7Ew1cDX0w}
+#    client-id: ${peTq3mQqRkG7YCeHGM5LfA}
+#    client-secret: ${NmBuwRQmKvGXzsGOx8266sX0R9lTG1YR}
+#    base-url: https://api.zoom.us/v2
+#    oauth-url: https://zoom.us/oauth/token
+
 
 management:
   endpoints:

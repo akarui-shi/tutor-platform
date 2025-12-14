@@ -38,8 +38,10 @@ const CalendarView: React.FC = () => {
     const events = lessons.map((lesson: Lesson) => ({
         id: lesson.id,
         title: `${lesson.subject}${lesson.tutorId ? ` (Репетитор: ${lesson.tutorId})` : ''}`,
-        start: new Date(lesson.startTime),
-        end: new Date(lesson.endTime),
+        start: new Date(lesson.startTime || lesson.scheduledTime),
+        end: lesson.endTime
+            ? new Date(lesson.endTime)
+            : new Date(new Date(lesson.scheduledTime).getTime() + lesson.durationMinutes * 60000),
         resource: lesson,
     }));
 

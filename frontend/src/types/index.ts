@@ -16,8 +16,8 @@ export interface Lesson {
     subject?: string;
     description?: string;
     paymentStatus?: 'PENDING' | 'PAID' | 'REFUNDED';
-    startTime?: string;
-    endTime?: string;
+    startTime: string;
+    endTime: string;
     duration?: number;
     materials?: string[];
 }
