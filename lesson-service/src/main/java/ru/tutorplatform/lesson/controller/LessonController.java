@@ -29,8 +29,10 @@ public class LessonController {
     @Operation(summary = "Создать новый урок")
     public ResponseEntity<ApiResponse<LessonDTO>> createLesson(
             @Valid @RequestBody CreateLessonRequest request,
-            @RequestHeader("X-User-Id") Long userId) {
-        LessonDTO lesson = lessonService.createLesson(request, userId);
+            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+        // Если userId не передан в заголовке, используем studentId из запроса
+        Long actualUserId = userId != null ? userId : request.getStudentId();
+        LessonDTO lesson = lessonService.createLesson(request, actualUserId);
         return ResponseEntity.ok(ApiResponse.success(lesson));
     }
 

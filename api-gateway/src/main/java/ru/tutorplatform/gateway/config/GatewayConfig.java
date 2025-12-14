@@ -13,25 +13,23 @@ public class GatewayConfig {
         return builder.routes()
                 .route("user-service", r -> r
                         .path("/api/users/**")
-                        .uri("lb://USER-SERVICE"))
+                        .uri("lb://user-service"))
 
                 .route("auth-service", r -> r
                         .path("/api/auth/**")
-//                        .uri("http://localhost:8081"))
-                        .uri("lb://USER-SERVICE"))
+                        .uri("lb://user-service"))
 
                 .route("lesson-service", r -> r
                         .path("/api/lessons/**")
-                        .filters(f -> f.stripPrefix(1))
-                        .uri("lb://LESSON-SERVICE"))
+                        .uri("lb://lesson-service"))
 
                 .route("payment-service", r -> r
                         .path("/api/payments/**")
-                        .uri("lb://PAYMENT-SERVICE"))
+                        .uri("lb://payment-service"))
 
                 .route("calendar-service", r -> r
                         .path("/api/calendar/**")
-                        .uri("lb://CALENDAR-SERVICE"))
+                        .uri("lb://calendar-service"))
 
                 .route("swagger", r -> r
                         .path("/v3/api-docs/**")

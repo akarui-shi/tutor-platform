@@ -24,6 +24,7 @@ import { format, addHours } from 'date-fns';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { createLesson, updateLesson } from '../../store/slices/lessonSlice';
 import api from '../../services/api';
+import { CreateLessonRequest } from '../../types';
 
 const lessonSchema = z.object({
     tutorId: z.number().min(1, 'Выберите репетитора'),
@@ -98,16 +99,41 @@ const LessonForm: React.FC<LessonFormProps> = ({
     }, []);
 
     const onSubmit = async (data: LessonFormData) => {
-        const formData = {
-            ...data,
+        // Вычисляем длительность в минутах (минимум 15 минут)
+        const start = new Date(data.startTime);
+        const end = new Date(data.endTime);
+        const durationMinutes = Math.max(15, Math.round((end.getTime() - start.getTime()) / (1000 * 60)));
+
+        // Маппинг предметов на ID (временное решение - можно улучшить)
+        const subjectMap: Record<string, number> = {
+            'Математика': 1,
+            'Физика': 2,
+            'Химия': 3,
+            'Информатика': 4,
+            'Английский язык': 5,
+            'Русский язык': 6,
+            'История': 7,
+            'Биология': 8,
+        };
+
+        // Преобразуем дату в формат ISO 8601 без миллисекунд для LocalDateTime
+        const scheduledTime = new Date(data.startTime).toISOString().slice(0, 19);
+
+        // Преобразуем данные в формат, ожидаемый бэкендом
+        const formData: CreateLessonRequest = {
             studentId: user?.id || 0,
+            tutorId: data.tutorId,
+            subjectId: subjectMap[data.subject] || 1, // Используем маппинг или дефолтное значение
+            scheduledTime: scheduledTime, // Формат ISO 8601: "2024-01-01T10:00:00"
+            durationMinutes: durationMinutes,
+            price: data.price,
         };
 
         try {
             if (lessonId) {
-                await dispatch(updateLesson({ id: lessonId, data: formData })).unwrap();
+                await dispatch(updateLesson({ id: lessonId, data: formData as any })).unwrap();
             } else {
-                await dispatch(createLesson(formData)).unwrap();
+                await dispatch(createLesson(formData as any)).unwrap();
             }
 
             if (onSubmitSuccess) {

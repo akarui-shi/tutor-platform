@@ -19,10 +19,9 @@ export interface Lesson {
 export interface CreateLessonRequest {
     studentId: number;
     tutorId: number;
-    subject: string;
-    description?: string;
-    startTime: string;
-    endTime: string;
+    subjectId: number;
+    scheduledTime: string; // ISO 8601 format: "2024-01-01T10:00:00"
+    durationMinutes: number;
     price: number;
 }
 

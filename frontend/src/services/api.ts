@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { store } from '../store';
 import { logout } from '../store/slices/authSlice';
-import { CreateLessonRequest, UpdateLessonRequest, User } from '../types';
+import {CreateLessonRequest, UpdateLessonRequest, User} from "@/types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -120,8 +120,12 @@ class ApiService {
 
     // Lessons API
     public lessons = {
-        create: (data: CreateLessonRequest) =>
+        // create: (data: CreateLessonRequest) =>
+        //     this.api.post('/api/lessons', data),
+
+        create: (data: any) =>
             this.api.post('/api/lessons', data),
+
 
         getById: (id: number) =>
             this.api.get(`/api/lessons/${id}`),
